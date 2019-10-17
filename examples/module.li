@@ -1,0 +1,13 @@
+(module Test
+  (defn sum (a b) (+ a  b))
+  (def add1 (~ sum _ 1))
+  (defn-rec fib (match-args
+    (0) (1)
+    (1) (1)
+    (n) (+ (fib (- n 1)) (fib (- n 2)))
+  ))
+  (macro log (a) 
+    (%% (print '%%a' a))
+  )
+  (do 1 2)
+)
