@@ -1,20 +1,27 @@
-module Compile
+module rec Compile
 
 open Parse
 open Runtime
 
-// GlobalContext.DefineMacro "module" 
 let moduleMacro (context: Context, ast: AST) =
-  printfn "Module Macro!"
   match ast with
-  | List (Token name :: tail) -> 
-    context.DefineModule name ()
-    context, List tail
+  | List (Token name :: body) -> 
+    let module' = Module(Some context, name)
+    context.DefineModule name module'
+    let ast = resolveMacros module' (List body)
+    context, ast
   | _ -> failwith "Unexpected arguments to module macro"
 
+let defnMacro (context: Context, ast: AST) =
+  match ast with
+  | List [Token name ; List args ; List body] ->
+    context.DefineFunction name (UserFunction (args, List body))
+    context, ast
+  | _ -> failwith "Unexpected arguments to module defn"
+
 let setupRuntime () =
-  GlobalContext.DefineMacro "module" moduleMacro
-  printfn "test"
+  GlobalModule.DefineMacro "module" moduleMacro
+  GlobalModule.DefineMacro "defn" defnMacro
 
 let rec resolveMacros (context: Context) (ast: AST) =
   match ast with

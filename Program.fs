@@ -12,9 +12,12 @@ let main argv =
   let tokens = tokenize file
   let ast = parse tokens
   setupRuntime ()
-  let macrosResolved = resolveMacros GlobalContext (List ast)
+  let macrosResolved = resolveMacros GlobalModule (List ast)
 
   printfn "{%A}" ast
   printfn "{%A}" macrosResolved
-  printfn "{%A}" GlobalContext
+  printfn "Global {%A}" GlobalModule
+  let TestModule = GlobalModule.Module "Test"
+  printfn "Test {%A}" TestModule
+  
   0 // return an integer exit code
