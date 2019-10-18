@@ -8,16 +8,15 @@ open System.IO
 
 [<EntryPoint>]
 let main argv = 
-  let file = File.ReadAllText argv.[0]
+  let fileInPath = argv.[0]
+  let fileOutPath = Path.ChangeExtension (fileInPath, "cs")
+  let file = File.ReadAllText fileInPath
   let tokens = tokenize file
   let ast = parse tokens
   setupRuntime ()
   let macrosResolved = resolveMacros GlobalModule (List ast)
+  let code = compileExpr GlobalModule macrosResolved
 
-  printfn "{%A}" ast
-  printfn "{%A}" macrosResolved
-  printfn "Global {%A}" GlobalModule
-  let TestModule = GlobalModule.Module "Test"
-  printfn "Test {%A}" TestModule
+  File.WriteAllText (fileOutPath, code)
   
   0 // return an integer exit code
