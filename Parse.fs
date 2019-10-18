@@ -18,6 +18,6 @@ let parse tokens =
       parse (List tokens :: acc) tail
     | SeqCons (CloseList, tail) -> List.rev acc, tail
     | SeqCons (GeneralToken t, tail) -> parse (Token t :: acc) tail
-    | SeqCons (StringToken s, tail) -> parse (Token ("@\"" + s + "\"") :: acc) tail
+    | SeqCons (StringToken s, tail) -> parse (Token ("`" + s + "`") :: acc) tail
   let ast, _ = parse [] tokens
   ast

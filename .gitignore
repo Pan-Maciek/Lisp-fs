@@ -35,3 +35,6 @@ msbuild.wrn
 
 .vs/
 .ionide
+Properties
+*.ast
+*.js
