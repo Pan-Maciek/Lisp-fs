@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Util.fs" />
     <Compile Include="Lex.fs" />
     <Compile Include="Parse.fs" />
     <Compile Include="RuntimeDefinitions.fs" />
