@@ -1,6 +1,7 @@
 module rec Runtime
 
 open Parse
+open Util
 open System.Collections.Generic
 
 type Context(root: Context option) =
@@ -16,7 +17,7 @@ type Context(root: Context option) =
       match root with
       | None -> None
       | Some root -> root.Macro name
-  member _.Macros = macros.Keys
+  member _.Macros = macros.Values
 
   member _.DefineModule (name: string) (module': Module) = modules.Add (name, module')
   member _.Module (name: string): Module option = 
@@ -26,11 +27,19 @@ type Context(root: Context option) =
       match root with
       | None -> None
       | Some root -> root.Module name
-  member _.Modules = modules.Keys
+  member _.Modules = modules.Values
 
   member _.DefineFunction (name: string) (fn: Function) = functions.Add (name, fn)
+  member _.Function (name: string): Function option =
+    match functions.TryGetValue name with
+    | true, fn -> Some fn
+    | flase, _ -> 
+      match root with
+      | None -> None
+      | Some root -> root.Function name
+  member _.Functions = functions.Values
 
-  member _.Functions = functions.Keys
+  override _.ToString () = "(Context)"
 
 type Module(root: Context option, name: string) =
   inherit Context(None)
@@ -39,25 +48,28 @@ type Module(root: Context option, name: string) =
   member _.FullyQualifiedName = 
     match root with
     | None -> name
-    | Some rootModule -> 
-      match rootModule with
-      | :? Module as rootModule -> rootModule.FullyQualifiedName + "." + name
+    | Some root -> 
+      match root with
+      | :? Module as root -> root.FullyQualifiedName + "." + name
       | _ -> name
+  override self.ToString () = "(" + self.FullyQualifiedName + ")"
 
-type Function =
-  | NativeFunction of string
-  | UserFunction of AST list * AST
+type Function(root: Context option) =
+  inherit Context(root)
 
-let defn (context: Context) (ast: AST): AST =
-  let functionContext = Context(Some context)
-  let rec defineFunction ast = 
-    match ast with
-    | [] -> ()
-    | args :: body :: tail -> printfn "%A" args
-    | _ -> failwith "Expected function body"
-  Empty
+type UserFunction(root: Context, name: string, ast: AST list) =
+  inherit Function(None)
 
-let def (context: Context) (ast: AST): AST =
-  Empty
+  member _.Name = name
+  member _.FullyQualifiedName =
+    match root with
+    | :? Module as root -> root.FullyQualifiedName + "::" + name
+    | :? UserFunction as root -> root.FullyQualifiedName + "::" + name
+    | _ -> name
 
-let GlobalModule = Module(None, "global")
+type NativeFunction(fullyQualifiedName: string) =
+  inherit Function(None)
+
+  member _.FullyQualifiedName = fullyQualifiedName
+
+let GlobalModule = Module(None, "Global")
